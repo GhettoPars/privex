@@ -1,0 +1,14 @@
+// Ping webservice
+http :8080/ping
+
+// List messages
+http :8080/message
+
+// Get message
+http :8080/message/1
+
+// Create message
+http :8080/message UserID:=1 MessageText="Hello World!" MessageType=jpg
+
+// Delete message
+http delete :8080/message/1
