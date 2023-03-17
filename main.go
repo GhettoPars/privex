@@ -1,14 +1,23 @@
 package main
 
 import (
+	"context"
+	"fmt"
 	"net/http"
+	"os"
+	"privex/database"
+	"privex/handler"
 
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5"
 )
 
 var db = make(map[string]string)
 
-func setupRouter() *gin.Engine {
+func setupRouter(queries *database.Queries) *gin.Engine {
+
+	env := handler.Env{Db: queries}
+
 	// Disable Console Color
 	// gin.DisableConsoleColor()
 	r := gin.Default()
@@ -17,6 +26,11 @@ func setupRouter() *gin.Engine {
 	r.GET("/ping", func(c *gin.Context) {
 		c.String(http.StatusOK, "pong")
 	})
+
+	r.GET("/message", env.ListMessages)
+	r.GET("/message/:id", env.GetMessage)
+	r.POST("/message", env.PostMessage)
+	r.DELETE("/message/:id", env.DeleteMessage)
 
 	// Get user value
 	r.GET("/user/:name", func(c *gin.Context) {
@@ -68,7 +82,29 @@ func setupRouter() *gin.Engine {
 }
 
 func main() {
-	r := setupRouter()
-	// Listen and Server in 0.0.0.0:8080
+	// setup DB
+	conn_string := os.Getenv("DB_CONN")
+	if conn_string == "" {
+		panic("No db connection string")
+	}
+
+	conn, err := pgx.Connect(context.Background(), conn_string)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
+		os.Exit(1)
+	}
+	defer conn.Close(context.Background())
+	queries := database.New(conn)
+
+	// queries.CreateMessage(context.Background(), database.CreateMessageParams{UserID: 1, MessageText: "Some messate", MessageType: "txt"})
+	// messages, err := queries.ListMessages(context.Background())
+	// if err != nil {
+	// 	fmt.Println(err)
+	// } else {
+	// 	fmt.Println(messages)
+	// }
+
+	// run listener
+	r := setupRouter(queries)
 	r.Run(":8080")
 }
