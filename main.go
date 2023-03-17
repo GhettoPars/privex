@@ -22,6 +22,9 @@ func setupRouter(queries *database.Queries) *gin.Engine {
 	// gin.DisableConsoleColor()
 	r := gin.Default()
 
+	// Static files
+	r.Static("/assets", "./assets")
+
 	// Ping test
 	r.GET("/ping", func(c *gin.Context) {
 		c.String(http.StatusOK, "pong")
