@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"privex/database"
@@ -16,35 +17,46 @@ var db = make(map[string]string)
 
 func setupRouter(queries *database.Queries) *gin.Engine {
 
+	// create database struct
 	env := handler.Env{Db: queries}
 
+	// create logger
+	f, err := os.Create("gin.log")
+	if err != nil {
+		panic(err)
+	}
+	gin.DefaultWriter = io.MultiWriter(f, os.Stdout)
 	// Disable Console Color
 	// gin.DisableConsoleColor()
 	r := gin.Default()
+	r.Use(gin.Logger())
 
 	// Static files
-	r.Static("/assets", "./assets")
+	// r.Static("/", "./assets")
+	r.NoRoute(gin.WrapH(http.FileServer(http.Dir("./assets"))))
+
+	api := r.Group("/api")
 
 	// Ping test
-	r.GET("/ping", func(c *gin.Context) {
+	api.GET("/ping", func(c *gin.Context) {
 		c.String(http.StatusOK, "pong")
 	})
 
-	r.GET("/message", env.ListMessages)
-	r.GET("/message/:id", env.GetMessage)
-	r.POST("/message", env.PostMessage)
-	r.DELETE("/message/:id", env.DeleteMessage)
+	api.GET("/message", env.ListMessages)
+	api.GET("/message/:id", env.GetMessage)
+	api.POST("/message", env.PostMessage)
+	api.DELETE("/message/:id", env.DeleteMessage)
 
 	// Get user value
-	r.GET("/user/:name", func(c *gin.Context) {
-		user := c.Params.ByName("name")
-		value, ok := db[user]
-		if ok {
-			c.JSON(http.StatusOK, gin.H{"user": user, "value": value})
-		} else {
-			c.JSON(http.StatusOK, gin.H{"user": user, "status": "no value"})
-		}
-	})
+	// r.GET("/user/:name", func(c *gin.Context) {
+	// 	user := c.Params.ByName("name")
+	// 	value, ok := db[user]
+	// 	if ok {
+	// 		c.JSON(http.StatusOK, gin.H{"user": user, "value": value})
+	// 	} else {
+	// 		c.JSON(http.StatusOK, gin.H{"user": user, "status": "no value"})
+	// 	}
+	// })
 
 	// Authorized group (uses gin.BasicAuth() middleware)
 	// Same than:
@@ -53,10 +65,10 @@ func setupRouter(queries *database.Queries) *gin.Engine {
 	//	  "foo":  "bar",
 	//	  "manu": "123",
 	//}))
-	authorized := r.Group("/", gin.BasicAuth(gin.Accounts{
-		"foo":  "bar", // user:foo password:bar
-		"manu": "123", // user:manu password:123
-	}))
+	// authorized := r.Group("/", gin.BasicAuth(gin.Accounts{
+	// 	"foo":  "bar", // user:foo password:bar
+	// 	"manu": "123", // user:manu password:123
+	// }))
 
 	/* example curl for /admin with basicauth header
 	   Zm9vOmJhcg== is base64("foo:bar")
@@ -67,19 +79,19 @@ func setupRouter(queries *database.Queries) *gin.Engine {
 	  	-H 'content-type: application/json' \
 	  	-d '{"value":"bar"}'
 	*/
-	authorized.POST("admin", func(c *gin.Context) {
-		user := c.MustGet(gin.AuthUserKey).(string)
+	// authorized.POST("admin", func(c *gin.Context) {
+	// 	user := c.MustGet(gin.AuthUserKey).(string)
 
-		// Parse JSON
-		var json struct {
-			Value string `json:"value" binding:"required"`
-		}
+	// 	// Parse JSON
+	// 	var json struct {
+	// 		Value string `json:"value" binding:"required"`
+	// 	}
 
-		if c.Bind(&json) == nil {
-			db[user] = json.Value
-			c.JSON(http.StatusOK, gin.H{"status": "ok"})
-		}
-	})
+	// 	if c.Bind(&json) == nil {
+	// 		db[user] = json.Value
+	// 		c.JSON(http.StatusOK, gin.H{"status": "ok"})
+	// 	}
+	// })
 
 	return r
 }

@@ -45,7 +45,6 @@ func (e *Env) PostMessage(c *gin.Context) {
 
 	err := c.Bind(&json)
 	if err != nil {
-		fmt.Println(err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
 		return
 	}
