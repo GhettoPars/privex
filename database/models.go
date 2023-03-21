@@ -15,3 +15,12 @@ type Message struct {
 	MessageType string
 	CreatedAt   pgtype.Timestamptz
 }
+
+type User struct {
+	UserID    int64
+	UserName  string
+	UserRole  string
+	Email     string
+	Password  string
+	CreatedAt pgtype.Timestamptz
+}

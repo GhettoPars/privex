@@ -47,6 +47,9 @@ func setupRouter(queries *database.Queries) *gin.Engine {
 	api.POST("/message", env.PostMessage)
 	api.DELETE("/message/:id", env.DeleteMessage)
 
+	api.GET("/user/:id", env.GetUser)
+	api.POST("/user", env.PostUser)
+
 	// Get user value
 	// r.GET("/user/:name", func(c *gin.Context) {
 	// 	user := c.Params.ByName("name")

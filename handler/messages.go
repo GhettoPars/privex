@@ -2,7 +2,6 @@ package handler
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"privex/database"
 	"strconv"
@@ -10,10 +9,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// List Messages
 func (e *Env) ListMessages(c *gin.Context) {
 	messages, err := e.Db.ListMessages(context.Background())
-	fmt.Println(messages, err)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
 		return
@@ -49,14 +46,11 @@ func (e *Env) PostMessage(c *gin.Context) {
 		return
 	}
 
-	fmt.Println(json)
 	message, err := e.Db.CreateMessage(context.Background(), database.CreateMessageParams{UserID: json.UserID, MessageText: json.MessageText, MessageType: json.MessageType})
-	fmt.Println(message)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
 		return
 	}
-	fmt.Println(message)
 	c.JSON(http.StatusOK, message)
 	return
 

@@ -37,6 +37,41 @@ func (q *Queries) CreateMessage(ctx context.Context, arg CreateMessageParams) (M
 	return i, err
 }
 
+const createUser = `-- name: CreateUser :one
+INSERT INTO users (
+  user_name, user_role, email, password
+) VALUES (
+  $1, $2, $3, $4
+)
+RETURNING user_id, user_name, user_role, email, password, created_at
+`
+
+type CreateUserParams struct {
+	UserName string
+	UserRole string
+	Email    string
+	Password string
+}
+
+func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
+	row := q.db.QueryRow(ctx, createUser,
+		arg.UserName,
+		arg.UserRole,
+		arg.Email,
+		arg.Password,
+	)
+	var i User
+	err := row.Scan(
+		&i.UserID,
+		&i.UserName,
+		&i.UserRole,
+		&i.Email,
+		&i.Password,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const deleteMessage = `-- name: DeleteMessage :exec
 DELETE FROM messages
 WHERE message_id = $1
@@ -44,6 +79,16 @@ WHERE message_id = $1
 
 func (q *Queries) DeleteMessage(ctx context.Context, messageID int64) error {
 	_, err := q.db.Exec(ctx, deleteMessage, messageID)
+	return err
+}
+
+const deleteUser = `-- name: DeleteUser :exec
+DELETE FROM users
+WHERE user_id = $1
+`
+
+func (q *Queries) DeleteUser(ctx context.Context, userID int64) error {
+	_, err := q.db.Exec(ctx, deleteUser, userID)
 	return err
 }
 
@@ -60,6 +105,25 @@ func (q *Queries) GetMessage(ctx context.Context, messageID int64) (Message, err
 		&i.UserID,
 		&i.MessageText,
 		&i.MessageType,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const getUser = `-- name: GetUser :one
+SELECT user_id, user_name, user_role, email, password, created_at FROM users
+WHERE user_id = $1 LIMIT 1
+`
+
+func (q *Queries) GetUser(ctx context.Context, userID int64) (User, error) {
+	row := q.db.QueryRow(ctx, getUser, userID)
+	var i User
+	err := row.Scan(
+		&i.UserID,
+		&i.UserName,
+		&i.UserRole,
+		&i.Email,
+		&i.Password,
 		&i.CreatedAt,
 	)
 	return i, err
