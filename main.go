@@ -9,6 +9,7 @@ import (
 	"privex/database"
 	"privex/handler"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5"
 )
@@ -29,6 +30,9 @@ func setupRouter(queries *database.Queries) *gin.Engine {
 	// Disable Console Color
 	// gin.DisableConsoleColor()
 	r := gin.Default()
+	config := cors.DefaultConfig()
+	config.AllowAllOrigins = true
+	r.Use(cors.New(config))
 	r.Use(gin.Logger())
 
 	// Static files
