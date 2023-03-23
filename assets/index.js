@@ -2,18 +2,11 @@ window.onload = () => {
     let menu = document.getElementById("menu");
     let messagebox = document.getElementById("messages");
     let inputMessage = document.getElementById("input");
-    // let inputbox = document.getElementById('inputbox');
     let inputBox = document.getElementById("submit");
-    //let updatelist = document.getElementById("update");
 
-    // inputbox.addEventListener("submit", () => { send(inputMessage.value) })
     inputBox.addEventListener("click", () => { send(inputMessage.value) });
-    //updatelist.addEventListener("click", () => { updateChat() });
 
-    let login = document.getElementById("login");
     let chat = document.getElementById("chat");
-    let user1 = document.getElementById("user1");
-    let user2 = document.getElementById("user2");
 
     class User {
         constructor(uid) {
@@ -24,21 +17,13 @@ window.onload = () => {
             this.userID = uid;
             this.color = colors[uid];
             this.tag = document.getElementById("userID");
-            this.tag.style.backgroundColor = this.color;
-            this.tag.innerHTML = (uid + "-User");
+            //this.tag.style.backgroundColor = this.color;
+            //this.tag.innerHTML = (uid + "-User");
         }
     }
 
     let user = {};
-
-    user1.onclick = () => { user = new User(1); hideLoginScreen(); }
-    user2.onclick = () => { user = new User(2); hideLoginScreen(); }
-
-    function hideLoginScreen() {
-        login.style.display = "none";
-        chat.style.display = "flex";
-        chat.style.flexDirection = "column";
-    }
+    user = new User(1);
 
     async function updateChat() {
         let data = await listMessages();
