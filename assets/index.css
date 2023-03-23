@@ -43,6 +43,8 @@ body {
 }
 
 .message {
+    display: flex;
+    flex-direction: row;
     width: 90%;
     height: auto;
 }

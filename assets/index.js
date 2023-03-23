@@ -4,11 +4,11 @@ window.onload = () => {
     let inputMessage = document.getElementById("input");
     // let inputbox = document.getElementById('inputbox');
     let inputBox = document.getElementById("submit");
-    let updatelist = document.getElementById("update");
+    //let updatelist = document.getElementById("update");
 
     // inputbox.addEventListener("submit", () => { send(inputMessage.value) })
     inputBox.addEventListener("click", () => { send(inputMessage.value) });
-    updatelist.addEventListener("click", () => { updateChat() });
+    //updatelist.addEventListener("click", () => { updateChat() });
 
     let login = document.getElementById("login");
     let chat = document.getElementById("chat");
@@ -42,25 +42,46 @@ window.onload = () => {
 
     async function updateChat() {
         let data = await listMessages();
-        data.forEach(element => {
-            makeMessage(element.MessageText);
+        messagebox.innerHTML = "";
+        data.forEach((element, index) => {
+            makeMessage(data[(data.length - 1) - index].MessageText, data[(data.length - 1) - index].MessageID);
         });
     }
 
     function listMessages() {
         return new Promise((resolve, reject) => {
-            fetch("/api/message", { method: "GET" })
+            fetch("https://privex.onrender.com/api/message", { method: "GET" })
                 .then(res => res.json())
                 .then((list) => { resolve(list); });
         })
     }
 
-    function makeMessage(msg) {
+    function makeMessage(msg, id) {
+        let message = document.createElement("div");
+        let del = document.createElement("p");
         let text = document.createElement("p");
-        text.style.backgroundColor = user.color;
-        text.className = "message";
+        message.id = id;
+        //text.style.backgroundColor = user.color;
+        message.style.display = "flex";
+        message.style.flexDirection = "row";
+        message.className = "message";
+        text.className = "msg";
         text.innerHTML = msg;
-        messagebox.appendChild(text);
+        del.className = "delete";
+        del.innerHTML = "❌";
+        del.onclick = () => {
+            fetch("https://privex.onrender.com/api/message/" + id, { method: "DELETE" })
+                .then(function (response) {
+                    console.log(response);
+                    updateChat();
+                })
+                .catch(function (error) {
+                    console.log(error);
+                });
+        }
+        message.appendChild(del);
+        message.appendChild(text);
+        messagebox.appendChild(message);
     }
 
     function send(msg) {
@@ -70,10 +91,10 @@ window.onload = () => {
             // text.className = "message";
             // text.innerHTML = msg;
             // messagebox.appendChild(text);
-            makeMessage(msg);
+            //makeMessage(msg);
             inputMessage.value = "";
 
-            fetch("/api/message", {
+            fetch("https://privex.onrender.com/api/message", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -81,6 +102,7 @@ window.onload = () => {
                 body: JSON.stringify({ UserID: user.userID, MessageText: msg, MessageType: "txt" }),
             })
                 .then(function (response) {
+                    updateChat();
                     return response.json();
                 })
                 .catch(function (error) {
@@ -88,4 +110,5 @@ window.onload = () => {
                 });
         }
     }
+    updateChat();
 }
